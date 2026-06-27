@@ -130,24 +130,102 @@ LED devre disi birakildi.
 
 ## 🚀 Getting Started
 
-**Run in simulation (no hardware required):**
-1. Open the [Wokwi project link](https://wokwi.com/projects/464392081577753601)
-2. Click ▶️ **Play** to start the simulation and wait for the WiFi/MQTT connection log
-3. Click the PIR sensor → **Simulate motion**
-4. Drag the HC-SR04 distance slider below 200 cm to trigger the alarm LED
+### Step 1 — Install Node.js
+1. Go to [nodejs.org](https://nodejs.org) and download the **LTS** version
+2. Run the installer
+3. Open a terminal (Command Prompt / PowerShell / Terminal) and verify:
+   ```
+   node --version
+   npm --version
+   ```
+   Both should print a version number — if so, Node.js is ready.
 
-**Run with a live Node-RED dashboard:**
-1. Install [Node.js](https://nodejs.org) (LTS) and then Node-RED: `npm install -g --unsafe-perm node-red`
-2. Start it with `node-red` and open `http://localhost:1880`
-3. Install the dashboard package via **Manage Palette → Install** → search `node-red-dashboard`
-4. Import a flow that subscribes to `esp32-alarm/distance` (gauge) and publishes to `esp32-alarm/led` (buttons), using `broker.hivemq.com` as the MQTT broker
-5. Deploy the flow, then open the dashboard at `http://localhost:1880/ui`
+### Step 2 — Install Node-RED
+1. Open your terminal **as Administrator** (Windows: Start → "cmd" → right-click → *Run as administrator*)
+2. Run:
+   ```
+   npm install -g --unsafe-perm node-red
+   ```
+3. Wait for it to finish (typically 2–5 minutes)
+
+### Step 3 — Start Node-RED
+1. In the terminal, run:
+   ```
+   node-red
+   ```
+2. Wait until you see:
+   ```
+   Server now running at http://127.0.0.1:1880/
+   ```
+3. Open your browser at `http://localhost:1880`
+4. **Keep the terminal window open** — Node-RED needs to keep running in the background
+
+### Step 4 — Install the Dashboard Package
+1. Click the **☰** menu (top right) → **Manage Palette**
+2. Open the **Install** tab
+3. Search for `node-red-dashboard`
+4. Find **@flowfuse/node-red-dashboard** and click **Install** (confirm if prompted)
+5. Wait for the "Nodes added to palette" confirmation
+6. Click **Close**
+
+### Step 5 — Build the Flow
+Create a flow with:
+- An **MQTT-in** node subscribed to `esp32-alarm/distance`, wired to a **gauge** node (range 0–400)
+- Two **button** nodes ("LED ON" / "LED OFF") wired to an **MQTT-out** node publishing `ON` / `OFF` to `esp32-alarm/led`
+
+Click the red **Deploy** button (top right) once your flow is ready.
+
+### Step 6 — Configure the MQTT Broker
+1. Double-click your MQTT node
+2. Click the pencil (✏️) icon next to the **Server** field
+3. Set the server to:
+   ```
+   broker.hivemq.com
+   ```
+4. Leave the port as `1883`
+5. Click **Update** → **Done** → **Deploy**
+
+> This broker config applies to *both* MQTT nodes (subscribe and publish), since they share the same broker setting.
+
+### Step 7 — Open the Dashboard
+1. In a new browser tab, go to:
+   ```
+   http://localhost:1880/ui
+   ```
+2. You should see your distance gauge (0–400 cm) and the LED ON/OFF buttons
+
+### Step 8 — Start the Wokwi Simulation
+1. Open the [Wokwi project link](https://wokwi.com/projects/464392081577753601)
+2. Click the green ▶️ **Play** button
+3. Watch the Serial Monitor (bottom right) until you see a successful connection message (can take 30–60 seconds)
+
+### Step 9 — Test the System
+
+**Test 1 — Motion detection & distance measurement**
+1. Click the PIR sensor in the Wokwi canvas
+2. Click **Simulate motion**
+3. The Serial Monitor should show the measured distance and a successful MQTT publish
+4. The dashboard gauge should update accordingly
+
+**Test 2 — Alarm LED (0–200 cm range)**
+1. Click the HC-SR04 sensor
+2. Drag its distance slider below 200 cm (e.g. 100 cm)
+3. The Serial Monitor should confirm the LED is now blinking
+4. The RGB LED in the simulation should blink red, and the dashboard gauge should reflect the new distance
+
+**Test 3 — Remote LED control from the dashboard**
+1. Click **LED OFF** on the dashboard
+2. The Serial Monitor should confirm the `OFF` command was received and the LED disabled
+3. Click **LED ON** and confirm the LED resumes blinking
+
+---
 
 **Run on real hardware:**
 1. Wire the components per the [pin connection summary](#-circuit-diagram) above
 2. Install the required library: `PubSubClient`
 3. Flash `sketch.ino` to an ESP32 via Arduino IDE or PlatformIO
 4. Open the Serial Monitor at `115200` baud to view live logs
+5. Follow Steps 1–7 above to set up the Node-RED dashboard for the physical device as well
 
 ---
 
